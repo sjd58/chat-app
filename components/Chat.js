@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Platform, KeyboardAvoidingView } from 'react-native';
 import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //Firestore Database
 import firebase from 'firebase/compat/app';
@@ -38,8 +40,42 @@ export default class Chat extends React.Component {
   //Store and retrieve the chat messages
   this.referenceChatMessages = firebase.firestore().collection("messages");
   }
+
+  //5.4  Retrieve messages from async storage
+  async getMessages () {
+    let messages = '';
+    try {
+      messages = await AsyncStorage.getItem('messages') || [];
+      this.setState({
+        messages: JSON.parse(messages)
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  async deleteMessages() {
+    try {
+      await AsyncStorage.removeItem('messages');
+      this.setState({
+        messages: []
+      })
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   
   componentDidMount() {
+    this.getMessages();
+
     let { name } = this.props.route.params;
     this.props.navigation.setOptions({ title: name });
 
@@ -103,7 +139,7 @@ export default class Chat extends React.Component {
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, messages),
     }), () => {
-    this.addMessage();
+    this.addMessage(); //change to this.saveMessages(); for exercise 5.4?
   });
 }
 
