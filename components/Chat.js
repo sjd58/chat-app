@@ -40,7 +40,6 @@ export default class Chat extends React.Component {
   }
   
   componentDidMount() {
-    // let name = this.props.route.params.name; // OR ...
     let { name } = this.props.route.params;
     this.props.navigation.setOptions({ title: name });
 
@@ -74,7 +73,7 @@ export default class Chat extends React.Component {
       messages.push({
         _id: data._id,
         text: data.text,
-        //createdAt: data.createdAt.toDate(),
+        createdAt: data.createdAt/*.toDate()*/,
         user: data.user,
       });
     });
@@ -108,7 +107,7 @@ export default class Chat extends React.Component {
   });
 }
 
-  //function that makes the background color of the sender's messages blue
+  //function that makes the background color of the sender's messages black rather than blue
   renderBubble(props) {
     return (
       <Bubble
