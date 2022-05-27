@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Platform, KeyboardAvoidingView } from 'react-native';
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -78,6 +78,14 @@ export default class Chat extends React.Component {
 
     let { name } = this.props.route.params;
     this.props.navigation.setOptions({ title: name });
+
+    NetInfo.fetch().then(connection => {
+      if (connection.isConnected) {
+        console.log('online');
+      } else {
+        console.log('offline');
+      }
+    });
 
     //Authenticates user via Firebase
     this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
@@ -159,12 +167,25 @@ export default class Chat extends React.Component {
       />
     )
   };
+
+  renderInputToolbar(props) {
+    if (this.state.isConnected == false) {
+    } else {
+      return(
+        <InputToolbar
+        {...props}
+        />
+      );
+    }
+  }
+
   render() {
     const bgColor = this.props.route.params.bgColor;
     return (
       <View style={{flex:1, backgroundColor: bgColor}}>
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
+          renderInputToolbar={this.renderInputToolbar.bind(this)}
           messages={this.state.messages}
           onSend={usersNewMessage => this.onSend(usersNewMessage)}
           user={{
