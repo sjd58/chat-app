@@ -31,6 +31,7 @@ export default class Chat extends React.Component {
 				name: '',
 				avatar: '',
 			},
+      isConnected: false,
     }
   
   //Initialize the Firestore app
@@ -41,7 +42,8 @@ export default class Chat extends React.Component {
   this.referenceChatMessages = firebase.firestore().collection("messages");
   }
 
-  //5.4  Retrieve messages from async storage
+  //5.4: If user is offline:
+  //1 Retrieve messages from async storage
   async getMessages () {
     let messages = '';
     try {
@@ -54,6 +56,7 @@ export default class Chat extends React.Component {
     }
   };
 
+  //2 Save messages into async storage, called in onSend()
   async saveMessages() {
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
@@ -61,7 +64,8 @@ export default class Chat extends React.Component {
       console.log(error.message);
     }
   };
-
+  
+  //3 Delete messages from async storage, for use as I develop the app
   async deleteMessages() {
     try {
       await AsyncStorage.removeItem('messages');
@@ -81,29 +85,32 @@ export default class Chat extends React.Component {
 
     NetInfo.fetch().then(connection => {
       if (connection.isConnected) {
+        //Authenticates user via Firebase
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            return await firebase.auth().signInAnonymously();
+          }
+          this.setState({
+            uid: user.uid,
+            messages: [],
+            user: {
+              _id: user.uid,
+              name: name,
+              avatar: "https://placeimg.com/140/140/any",
+            },
+            isConnected: true,
+          });
+          this.unsubscribe = this.referenceChatMessages
+            .orderBy("createdAt", "desc")
+            .onSnapshot(this.onCollectionUpdate);
+          });
         console.log('online');
+        this.saveMessages();
       } else {
+        this.setState({ isConnected: false });
+        this.getMessages();
         console.log('offline');
       }
-    });
-
-    //Authenticates user via Firebase
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
-        return await firebase.auth().signInAnonymously();
-      }
-      this.setState({
-        uid: user.uid,
-        messages: [],
-        user: {
-          _id: user.uid,
-          name: name,
-          avatar: "https://placeimg.com/140/140/any",
-        },
-      });
-      this.unsubscribe = this.referenceChatMessages
-        .orderBy("createdAt", "desc")
-        .onSnapshot(this.onCollectionUpdate);
     });
   };
 
@@ -126,8 +133,10 @@ export default class Chat extends React.Component {
     });
   };
   componentWillUnmount() {
-    this.unsubscribe();
-    this.authUnsubscribe();
+    if (this.state.isConnected == true) {
+      this.unsubscribe();
+      this.authUnsubscribe();
+    }
   }
   // this function adds whatever the user has just typed in as a new document in the firebase collection. It is called inside the onSend function.
   addMessage() {
@@ -147,7 +156,8 @@ export default class Chat extends React.Component {
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, messages),
     }), () => {
-    this.addMessage(); //change to this.saveMessages(); for exercise 5.4?
+    this.addMessage();
+    this.saveMessages();
   });
 }
 
