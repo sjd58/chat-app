@@ -3,6 +3,11 @@ import { View, Platform, KeyboardAvoidingView } from 'react-native';
 import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MapView from 'react-native-maps';
+import CustomActions from './CustomActions';
+import * as Permissions from 'expo-permissions';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 //Firestore Database
 import firebase from 'firebase/compat/app';
@@ -32,6 +37,8 @@ export default class Chat extends React.Component {
 				avatar: '',
 			},
       isConnected: false,
+      image: null,
+      location: null,
     }
   
   //Initialize the Firestore app
@@ -125,12 +132,18 @@ export default class Chat extends React.Component {
         _id: data._id,
         text: data.text,
         createdAt: data.createdAt/*.toDate()*/,
-        user: data.user,
+        user: {
+          _id: data.user._id,
+          name: data.user.name,
+        },
+        image: data.image || null,
+        location: data.location || null,
       });
     });
     this.setState({
-      messages
+      messages: messages,
     });
+    this.saveMessages();
   };
   componentWillUnmount() {
     if (this.state.isConnected == true) {
@@ -149,6 +162,8 @@ export default class Chat extends React.Component {
 			createdAt: message.createdAt,
 			user: this.state.user,
       uid: this.state.uid,
+      image: message.image || null,
+      location: message.location || null,
 		});
 	};
   //function that adds a new message to the state and to firebase as a new document
@@ -189,6 +204,34 @@ export default class Chat extends React.Component {
     }
   }
 
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  }
+
+  //render a map on a message with the sender's current location if they shared their location
+  renderCustomView(props) {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{
+            width: 150,
+            height: 100,
+            borderRadius: 13,
+            margin: 3
+          }}
+          region={{
+            latitude: parseInt(currentMessage.location.latitude),
+            longitude: parseInt(currentMessage.location.longitude),
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
+
   render() {
     const bgColor = this.props.route.params.bgColor;
     return (
@@ -203,6 +246,8 @@ export default class Chat extends React.Component {
             name: this.state.name,
             avatar: this.state.user.avatar,
           }}
+          renderActions={this.renderCustomActions}
+          renderCustomView={this.renderCustomView}
         />
         {/* For older Android phones, code to prevent the keyboard from blocking the input */}
         { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
