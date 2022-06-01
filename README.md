@@ -29,10 +29,38 @@ The chat must provide users with two additional communication features: sending 
 
 Data gets stored online and offline.
 
-## What technologies did I use and why?
+## What technologies did I use?
 
 React Native
 
 Expo
 
 Firebase and Firestore
+
+## Installation
+
+npm install --save react-navigation
+
+npm install @react-native-async-storage/async-storage
+
+npm install @react-native-community/masked-view
+
+npm install --save firebase@9.7.0
+
+npm install react-native-gifted-chat --save
+
+npm install expo-image-picker
+
+npm install expo-location
+
+npm install react-native-maps
+
+Enter either of these in the CLI to launch the app:
+
+npm start
+
+or 
+
+expo start
+
+You can run this app using expo go on a phone by scanning the QR code or in an emulator.
