@@ -10,32 +10,10 @@ import "firebase/firestore";
 
 export default class CustomActions extends React.Component {
 
-  imageUpload = async (uri) => {
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function (e) {
-        console.log(e);
-        reject(new TypeError("Network request failed"));
-      };
-      xhr.responseType = "blob";
-      xhr.open("GET", uri, true);
-      xhr.send(null);
-    });
-
-    const imageNameBefore = uri.split("/");
-    const imageName = imageNameBefore[imageNameBefore.length - 1];
-
-    const ref = firebase.storage().ref().child(`images/${imageName}`);
-
-    const snapshot = await ref.put(blob);
-
-    blob.close();
-
-    return await snapshot.ref.getDownloadURL();
-  };
+  state = {
+    image: null,
+    location: null,
+  }
 
   pickImage = async () => {
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
@@ -123,12 +101,39 @@ export default class CustomActions extends React.Component {
     );
   };
 
+  imageUpload = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function (e) {
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
+      xhr.send(null);
+    });
+
+    const imageNameBefore = uri.split("/");
+    const imageName = imageNameBefore[imageNameBefore.length - 1];
+
+    const ref = firebase.storage().ref().child(`images/${imageName}`);
+
+    const snapshot = await ref.put(blob);
+
+    blob.close();
+
+    return await snapshot.ref.getDownloadURL();
+  };
+
   render() {
     return (
       <TouchableOpacity 
         accessible={true}
         accessibilityLabel="More options"
-        accessibilityHint="Lets you send an image or your location in the chat."
+        accessibilityHint="Send an image or your location in the chat"
         style={[styles.container]} 
         onPress={this.onActionPress}>
         <View style={[styles.wrapper, this.props.wrapperStyle]}>
