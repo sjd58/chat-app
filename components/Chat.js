@@ -5,9 +5,6 @@ import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView from 'react-native-maps';
 import CustomActions from './CustomActions';
-import * as Permissions from 'expo-permissions';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 
 //Firestore Database
 import firebase from 'firebase/compat/app';
@@ -49,7 +46,7 @@ export default class Chat extends React.Component {
   this.referenceChatMessages = firebase.firestore().collection("messages");
   }
 
-  //5.4: If user is offline:
+  // If user is offline:
   //1 Retrieve messages from async storage
   async getMessages () {
     let messages = '';
@@ -166,6 +163,7 @@ export default class Chat extends React.Component {
       location: message.location || null,
 		});
 	};
+
   //function that adds a new message to the state and to firebase as a new document
   onSend(messages = []) {
     this.setState(previousState => ({
