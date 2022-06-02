@@ -8,6 +8,8 @@ import firebase from 'firebase/compat/app';
 //import firebase from "firebase";
 import "firebase/firestore";
 
+import { getStorage, ref, uploadBytes } from "firebase/storage";
+
 export default class CustomActions extends React.Component {
 
   state = {
@@ -119,13 +121,19 @@ export default class CustomActions extends React.Component {
     const imageNameBefore = uri.split("/");
     const imageName = imageNameBefore[imageNameBefore.length - 1];
 
-    const ref = firebase.storage().ref().child(`images/${imageName}`);
+    //const ref = firebase.storage().ref().child(`images/${imageName}`);
 
-    const snapshot = await ref.put(blob);
+    const storage = getStorage();
+    const storageRef = ref(storage, `images/${imageName}`);
 
-    blob.close();
+    uploadBytes(storageRef, blob).then((snapshot) => {
+      console.log('Uploaded a blob or file!');
+      blob.close();
+    });
 
-    return await snapshot.ref.getDownloadURL();
+    //const snapshot = await ref.put(blob);
+
+    //return await snapshot.ref.getDownloadURL();
   };
 
   render() {
