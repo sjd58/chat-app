@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location'
-import firebase from 'firebase/compat/app';
 //import firebase from "firebase";
 import "firebase/firestore";
 
@@ -18,7 +16,7 @@ export default class CustomActions extends React.Component {
   }
 
   pickImage = async () => {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     try {
       if (status === 'granted') {
@@ -32,12 +30,12 @@ export default class CustomActions extends React.Component {
         }
       }
     } catch (error) {
-      console.error(error);
+      console.log(error.message);
     }
   }
 
   takePhoto = async () => {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.MEDIA_LIBRARY);
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     try {
       if (status === 'granted') {
@@ -56,15 +54,13 @@ export default class CustomActions extends React.Component {
   }
 
   getLocation = async () => {
-    const { status } = await Permissions.askAsync(Permissions.LOCATION_FOREGROUND);
+    const { status } = await Location.requestForegroundPermissionsAsync();
 
     try {
       if (status === 'granted') {
         let result = await Location.getCurrentPositionAsync({}).catch(error => console.log(error));
 
-
         if (result) {
-          console.log(result);
           this.props.onSend({
             location: {
               longitude: result.coords.longitude,
